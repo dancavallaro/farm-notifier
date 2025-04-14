@@ -1,10 +1,6 @@
 import logging
-import os
 import sys
 import urllib.request
-import uuid
-
-import boto3
 
 from fake_useragent import UserAgent
 from selenium import webdriver
@@ -45,7 +41,7 @@ def fetch_page_simple(url):
         "User-Agent": "curl/8.3.0"
     })
     with urllib.request.urlopen(request) as response:
-        return response.read()
+        return str(response.read())
 
 
 class Fetcher(ScriptBase):
@@ -64,19 +60,8 @@ class Fetcher(ScriptBase):
         else:
             raise Exception(f"Invalid fetcher '{fetcher_name}'")
 
-        page_source = fetcher(self.config["url"])
-
-        source_bucket_name = os.getenv("SOURCE_BUCKET_NAME")
-        if source_bucket_name is not None:
-            source_bucket = boto3.resource("s3").Bucket(source_bucket_name)
-
-            upload_id = str(uuid.uuid4())
-            key = f"{self.website}/{upload_id}"
-            logging.info(f"Writing page source to {key=} in {source_bucket_name=}")
-            source_bucket.put_object(Key=key, Body=page_source)
-
-        print(page_source)
+        return fetcher(self.config["url"])
 
 
 if __name__ == "__main__":
-    Fetcher(sys.argv[1]).main()
+    print(Fetcher(sys.argv[1]).main())

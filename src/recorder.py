@@ -1,5 +1,4 @@
 import sys
-import uuid
 
 from base import ScriptBase
 from db import DatabaseInitializer
@@ -18,29 +17,27 @@ def _latest(conn, website):
 
 
 class Recorder(ScriptBase, DatabaseInitializer):
-    def __init__(self, website, fetch_time):
+    def __init__(self, website, update_id, content):
         super().__init__(website)
         DatabaseInitializer.__init__(self)
-        self.fetch_time = fetch_time
+        self.update_id = update_id
+        self.content = content
 
     def run(self):
         self.init_db()
 
         with self.connection() as conn:
             previous_id, previous_content = _latest(conn, self.website)
-            new_id = str(uuid.uuid4())
-            content = sys.stdin.read()
 
             conn.execute(
                 "INSERT INTO website_updates (id, website, fetch_time, contents, previous_id) "
-                "VALUES (?, ?, ?, ?, ?)",
-                (new_id, self.website, self.fetch_time, content, previous_id)
+                "VALUES (?, ?, datetime(), ?, ?)",
+                (self.update_id, self.website, self.content, previous_id)
             )
             conn.commit()
 
-            if previous_content:
-                print(previous_content)
+            return previous_content
 
 
 if __name__ == "__main__":
-    Recorder(sys.argv[1], sys.argv[2]).main()
+    print(Recorder(sys.argv[1], sys.argv[2], sys.argv[3]).main())

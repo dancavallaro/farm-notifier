@@ -26,17 +26,18 @@ def stults_parser(soup):
 def terhune_parser(soup):
     updates = soup.find_all('p', class_='blurbColor')
 
-    if len(updates) != 1:
+    if len(updates) > 1:
         raise Exception(f"Oops! Expected 1 update, found {len(updates)}.")
 
-    update_text = updates[0].get_text().strip()
+    update_text = updates[0].get_text().strip() if len(updates) == 1 else ""
 
     return update_text
 
 
 class Parser(ScriptBase):
-    def __init__(self, website):
+    def __init__(self, website, source):
         super().__init__(website)
+        self.source = source
 
     def run(self):
         logging.info(f"Parsing snapshot of website {self.website}")
@@ -48,11 +49,11 @@ class Parser(ScriptBase):
         else:
             raise Exception(f"Invalid website '{self.website}'")
 
-        page_source = sys.stdin.read()
+        page_source = self.source.read()
         soup = BeautifulSoup(page_source, "html.parser")
 
-        print(json.dumps(parser(soup)))
+        return json.dumps(parser(soup))
 
 
 if __name__ == "__main__":
-    Parser(sys.argv[1]).main()
+    Parser(sys.argv[1], sys.stdin).main()

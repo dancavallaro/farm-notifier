@@ -22,6 +22,7 @@ class Backfiller(ScriptBase, DatabaseInitializer):
         table = dynamodb.Table(self.table_name)
         items = table.scan()['Items']
 
+        items_backfilled = 0
         with self.connection(backfill=True) as conn:
             for item in items:
                 id, previous, fetch_time = item['id'], item.get('previous'), item.get('fetch_time')
@@ -39,10 +40,11 @@ class Backfiller(ScriptBase, DatabaseInitializer):
                     "VALUES (?, ?, ?, ?, ?)",
                     (uuid, website, fetch_time, json.dumps(content), previous_uuid)
                 )
+                items_backfilled += 1
 
             conn.commit()
 
-        logging.info(f"Backfilled {len(items)} records from DynamoDB to local DB")
+        logging.info(f"Backfilled {items_backfilled} records from DynamoDB to local DB")
 
 
 if __name__ == "__main__":

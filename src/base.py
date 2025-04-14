@@ -18,6 +18,6 @@ class ScriptBase(ABC):
     def main(self):
         logging.basicConfig(
             level=logging.INFO, style="{", datefmt="%Y-%m-%d %H:%M",
-            format="{asctime} [{levelname}] {message}")
+            format="{asctime} [{levelname}] ({name}) {message}")
 
-        self.run()
+        return self.run()
