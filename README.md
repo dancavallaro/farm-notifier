@@ -21,7 +21,6 @@ docker push "ghcr.io/dancavallaro/farm-notifier/farm-notifier:$(cat version)"
 
 ## TODOs
 
-* Replace S3 with in-cluster storage (Minio?)
 * Less ugly email template
 * Don't send email if there's no change
 * For string (non-list) updates, show a colorized word diff

@@ -18,6 +18,12 @@ from differ import Differ
 FROM_ADDRESS = "Farm Updates <farm-notifier@cavnet.cloud>"
 TO_ADDRESSES = ["dan.t.cavallaro+produce@gmail.com"]
 
+MINIO_S3_ARGS = {
+    "endpoint_url": os.getenv("S3_ENDPOINT_URL"),
+    "aws_access_key_id": os.getenv("S3_ACCESS_KEY_ID"),
+    "aws_secret_access_key": os.getenv("S3_SECRET_ACCESS_KEY"),
+}
+
 
 class Runner(ScriptBase):
     def __init__(self, website):
@@ -36,7 +42,7 @@ class Runner(ScriptBase):
             key = f"{self.website}/{update_id}"
             logging.info(f"Writing page source to {key=} in {source_bucket_name=}")
 
-            source_bucket = boto3.resource("s3").Bucket(source_bucket_name)
+            source_bucket = boto3.resource("s3", **MINIO_S3_ARGS).Bucket(source_bucket_name)
             source_bucket.put_object(Key=key, Body=html_source)
 
         # Parse the source to find today's update
