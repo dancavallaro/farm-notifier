@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Farm Update</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; line-height: 1.6; color: #333333; background-color: #f4f4f4;">
+    <table role="presentation" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-spacing: 0; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 20px;">
+                <div style="text-align: center">
+                    <h1 style="color: #2E7D32; margin: 0; font-size: 24px;">{{ website | capitalize }} Daily Update</h1>
+                </div>
+
+                <div style="padding: 10px 0; border-bottom: 2px solid #4CAF50"></div>
+
+                <div style="padding: 5px 0;">
+                    <div>
+                        <div style="margin-top: 20px;">
+                            <h3 style="color: #2E7D32; margin: 0 0 10px 0;">🌱 New items today:</h3>
+                            <ul style="margin: 0; padding: 0 0 0 20px; color: #388E3C;">
+                                {% for item in added %}
+                                <li style="margin-bottom: 5px;">{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <div style="margin-top: 20px;">
+                            <h3 style="color: #D32F2F; margin: 0 0 10px 0;">🚫 No longer available:</h3>
+                            <ul style="margin: 0; padding: 0 0 0 20px; color: #D32F2F;">
+                                {% for item in removed %}
+                                <li style="margin-bottom: 5px;">{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <div style="margin-top: 20px;">
+                            <h3 style="color: #000000; margin: 0 0 10px 0;">📋 All items available today:</h3>
+                            <ul style="margin: 0; padding: 0 0 0 20px; color: #000000;">
+                                {% for item in latest %}
+                                <li style="margin-bottom: 5px;">{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

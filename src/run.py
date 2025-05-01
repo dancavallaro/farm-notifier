@@ -8,6 +8,8 @@ import uuid
 
 import boto3
 
+from jinja2 import Environment, FileSystemLoader, select_autoescape, StrictUndefined
+
 from base import ScriptBase
 from fetcher import Fetcher
 from parser import Parser
@@ -55,14 +57,14 @@ class Runner(ScriptBase):
         diffed = Differ(previous, latest).run()
 
         # Send summary email
-        email_template_name = os.getenv("EMAIL_TEMPLATE_NAME")
+        emails_enabled = os.getenv("EMAILS_ENABLED")
         logging.info(f"Updates: '{previous=}', '{latest=}'")
-        if email_template_name is not None:
+        if emails_enabled == "true":
             if _is_empty(latest) and _is_empty(previous):
-                logging.info("Skipping email since there's no update, and no change from previous update")
+                logging.info("Skipping email since there's no update, again")
             else:
                 logging.info(f"Sending email for latest update for {self.website=}: {diffed}")
-                send_email(email_template_name, self.website, diffed)
+                send_email(self.website, diffed)
         else :
             logging.info(f"Latest update for {self.website=}: {diffed}")
 
@@ -75,7 +77,22 @@ def _is_empty(update):
     return update_obj == "" or update_obj == []
 
 
-def send_email(email_template_name, website, update):
+def send_email(website, update):
+    env = Environment(
+        loader=FileSystemLoader("templates"),
+        autoescape=select_autoescape(),
+        undefined=StrictUndefined
+    )
+
+    if type(update["latest"]) is str:
+        template = env.get_template("simple.html")
+    elif type(update["latest"]) is list:
+        template = env.get_template("list.html")
+    else:
+        raise Exception("update must be either a string or a list")
+
+    content = template.render(website=website, **update)
+
     ses = boto3.client("sesv2")
     resp = ses.send_email(
         FromEmailAddress=FROM_ADDRESS,
@@ -83,14 +100,19 @@ def send_email(email_template_name, website, update):
             "ToAddresses": TO_ADDRESSES,
         },
         Content={
-            "Template": {
-                "TemplateName": email_template_name,
-                "TemplateData": json.dumps({
-                    "website": website,
-                    "update": update
-                }),
+            "Simple": {
+                "Body": {
+                    "Html": {
+                        "Charset": "UTF-8",
+                        "Data": content
+                    }
+                },
+                "Subject": {
+                    "Charset": "UTF-8",
+                    "Data": f"Farm Update: {website}"
+                }
             }
-        }
+        },
     )
     logging.info(f"Successfully sent email with {resp['MessageId']=}")
 
