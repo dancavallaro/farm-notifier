@@ -3,6 +3,7 @@ import sys
 import urllib.request
 
 from fake_useragent import UserAgent
+from retry import retry
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 
@@ -10,6 +11,11 @@ from base import ScriptBase
 from config import WebsiteFetcher
 
 
+class FetchError(Exception):
+    pass
+
+
+@retry(FetchError, tries=3, delay=2, backoff=2)
 def fetch_page_selenium(url):
     options = webdriver.ChromeOptions()
     options.add_argument("--headless=new")
@@ -31,8 +37,16 @@ def fetch_page_selenium(url):
     driver = webdriver.Chrome(service=service, options=options)
 
     driver.get(url)
+    source = driver.page_source
 
-    return driver.page_source
+    # Every once in a while the Stults fetcher gets a response that looks like
+    # '<html><head></head><body></body></html>'. I haven't figured out why, but
+    # it always seems to work fine on a second try.
+    if len(source) < 1000:
+        logging.error(f"Website source is smaller than expected: {source}")
+        raise FetchError("website source is truncated, try again")
+
+    return source
 
 
 def fetch_page_simple(url):
