@@ -9,6 +9,7 @@ COPY requirements.txt /tmp
 RUN pip install -r /tmp/requirements.txt
 
 COPY src/*.py /farm-notifier/
+COPY templates/*.html /farm-notifier/templates/
 COPY sql/*.sql /farm-notifier/sql/
 RUN chmod +x /farm-notifier/run.py
 
